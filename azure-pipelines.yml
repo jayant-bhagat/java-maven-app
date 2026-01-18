@@ -60,7 +60,7 @@ stages:
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: '21'
         jdkArchitectureOption: 'x64'
-        goals: 'clean package'
+        goals: 'clean verify sonar:sonar'
         options: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
@@ -68,9 +68,6 @@ stages:
     - script: |
         find . -name "TEST-*.xml"
       displayName: "Find Test Result Files"
-
-    - task: SonarQubeAnalyze@7
-      displayName: 'Run SonarQube Analysis'
 
     - task: SonarQubePublish@7
       displayName: 'Publish SonarQube Results'
