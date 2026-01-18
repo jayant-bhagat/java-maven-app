@@ -23,7 +23,7 @@ stages:
         jdkSourceOption: 'PreInstalled'
       displayName: "Use Java 21"
 
-    - task: SonarQubePrepare@5
+    - task: SonarQubePrepare@7
       displayName: "Prepare SonarQube Analysis"
       inputs:
         SonarQube: 'sonar'
@@ -59,3 +59,33 @@ stages:
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         failTaskOnFailedTests: true
       displayName: 'Publish Test Results'
+
+    - task: SonarQubeAnalyze@7
+      displayName: 'Run SonarQube Analysis'
+
+          # Publish SonarQube Results
+    - task: SonarQubePublish@7
+      displayName: 'Publish SonarQube Results'
+      inputs:
+        pollingTimeoutSec: '300'
+
+    - task: SonarQubePublish@7
+      displayName: 'Check SonarQube Quality Gate'
+      inputs:
+        pollingTimeoutSec: '300'    # Wait for 5 mins max
+      condition: succeeded()
+
+          # Copy and Publish Artifacts
+    - task: CopyFiles@2
+      displayName: 'Copy JAR to Staging Directory'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)/target'
+        Contents: '*.jar'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
