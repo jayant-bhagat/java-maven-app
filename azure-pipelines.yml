@@ -9,28 +9,53 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: Build
+    displayName: 'Build Job'
+    steps:
+    - task: JavaToolInstaller@0
+      inputs:
+        versionSpec: '21'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+      displayName: "Use Java 21"
 
+    - task: SonarQubePrepare@5
+      displayName: "Prepare SonarQube Analysis"
+      inputs:
+        SonarQube: 'sonar'
+        scannerMode: 'Other'
+        extraProperties: |
+          sonar.projectKey=java_java_a087b77b-f43a-4f5a-927c-72455b1bdd34
+          sonar.projectName=java
+          sonar.projectVersion=$(Build.BuildId)
+          sonar.sources=src/main/java
+          sonar.tests=src/test/java
+          sonar.java.binaries=target
+          sonar.junit.reportPaths=target/surefire-reports
+          sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-steps:
+    - task: Maven@4
+      inputs:
+        mavenPomFile: 'pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '21'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
 
-- task: JavaToolInstaller@0
-  inputs:
-    versionSpec: '21'
-    jdkArchitectureOption: 'x64'
-    jdkSourceOption: 'PreInstalled'
-  displayName: "Use Java 21"
+    - script: |
+        find . -name "TEST-*.xml"
+      displayName: "Find Test Result Files"
 
-- task: Maven@4
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '21'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
-
-- script: |
-    find . -name "TEST-*.xml"
-  displayName: "Find Test Result Files"
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        failTaskOnFailedTests: true
+      displayName: 'Publish Test Results'
