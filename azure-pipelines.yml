@@ -9,6 +9,10 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+
+
 stages:
 - stage: Build
   displayName: 'Build Stage'
@@ -37,6 +41,17 @@ stages:
           sonar.java.binaries=target
           sonar.junit.reportPaths=target/surefire-reports
           sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+    - script: |
+          mkdir -p $(MAVEN_CACHE_FOLDER)
+      displayName: 'Create Maven cache directory'
+
+    - task: Cache@2
+      displayName: 'Cache Maven packages'
+      inputs:
+        key: 'maven | "$(Agent.OS)" | **/pom.xml'
+        restoreKeys: |
+          maven | "$(Agent.OS)"
+        path: $(MAVEN_CACHE_FOLDER)
 
     - task: Maven@4
       inputs:
@@ -45,25 +60,18 @@ stages:
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: '21'
         jdkArchitectureOption: 'x64'
+        goals: 'clean package'
+        options: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        goals: 'package'
 
     - script: |
         find . -name "TEST-*.xml"
       displayName: "Find Test Result Files"
 
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        failTaskOnFailedTests: true
-      displayName: 'Publish Test Results'
-
     - task: SonarQubeAnalyze@7
       displayName: 'Run SonarQube Analysis'
 
-          # Publish SonarQube Results
     - task: SonarQubePublish@7
       displayName: 'Publish SonarQube Results'
       inputs:
@@ -75,7 +83,7 @@ stages:
         pollingTimeoutSec: '300'    # Wait for 5 mins max
       condition: succeeded()
 
-          # Copy and Publish Artifacts
+    # Copy and Publish Artifacts
     - task: CopyFiles@2
       displayName: 'Copy JAR to Staging Directory'
       inputs:
