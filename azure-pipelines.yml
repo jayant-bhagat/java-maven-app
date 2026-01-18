@@ -60,8 +60,9 @@ stages:
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: '21'
         jdkArchitectureOption: 'x64'
-        goals: 'clean verify sonar:sonar'
+        goals: 'clean verify'
         options: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+        sonarQubeRunAnalysis: true
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
       displayName: 'Build with Maven and Run SonarQube Analysis'
