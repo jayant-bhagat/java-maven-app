@@ -9,7 +9,15 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+
+
 steps:
+
+- task: UseJavaVersion@1
+  inputs:
+    versionSpec: '21'
+    architecture: 'x64'
+
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
