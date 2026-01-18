@@ -20,7 +20,7 @@ steps:
     jdkSourceOption: 'PreInstalled'
   displayName: "Use Java 21"
 
-- task: Maven@3
+- task: Maven@4
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
