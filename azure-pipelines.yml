@@ -55,14 +55,9 @@ stages:
 
     - task: Maven@4
       inputs:
-       goals: 'clean verify'
-       sonarQubeRunAnalysis: true
+        sonarQubeRunAnalysis: true
 
 
-
-    - script: |
-        find . -name "TEST-*.xml"
-      displayName: "Find Test Result Files"
 
     - task: SonarQubePublish@7
       displayName: 'Publish SonarQube Results'
