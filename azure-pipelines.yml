@@ -26,8 +26,8 @@ stages:
         jdkArchitectureOption: 'x64'
         jdkSourceOption: 'PreInstalled'
       displayName: "Use Java 21"
-
-    - task: SonarQubePrepare@7
+ 
+    - task: SonarQubePrepare@8
       displayName: "Prepare SonarQube Analysis"
       inputs:
         SonarQube: 'sonar'
@@ -45,6 +45,7 @@ stages:
           mkdir -p $(MAVEN_CACHE_FOLDER)
       displayName: 'Create Maven cache directory'
 
+
     - task: Cache@2
       displayName: 'Cache Maven packages'
       inputs:
@@ -52,47 +53,19 @@ stages:
         restoreKeys: |
           maven | "$(Agent.OS)"
         path: $(MAVEN_CACHE_FOLDER)
-
+        
     - task: Maven@4
       inputs:
         mavenPomFile: 'pom.xml'
-        mavenOptions: '-Xmx3072m'
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '21'
-        jdkArchitectureOption: 'x64'
-        goals: 'clean verify'
-        sonarQubeRunAnalysis: true
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      displayName: 'Build with Maven and Run SonarQube Analysis'
+        codeCoverageToolOption: 'JaCoCo'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: true
+        isJacocoCoverageReportXML: true
+        sqMavenPluginVersionChoice: 'latest'        
 
-
-    - script: |
-        find . -name "TEST-*.xml"
-      displayName: "Find Test Result Files"
-
-    - task: SonarQubePublish@7
-      displayName: 'Publish SonarQube Results'
-      inputs:
-        pollingTimeoutSec: '300'
-
-    - task: SonarQubePublish@7
-      displayName: 'Check SonarQube Quality Gate'
-      inputs:
-        pollingTimeoutSec: '300'    # Wait for 5 mins max
-      condition: succeeded()
-
-    # Copy and Publish Artifacts
-    - task: CopyFiles@2
-      displayName: 'Copy JAR to Staging Directory'
-      inputs:
-        SourceFolder: '$(System.DefaultWorkingDirectory)/target'
-        Contents: '*.jar'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Build Artifacts'
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
+ 
