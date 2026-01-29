@@ -10,6 +10,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
+  group: java
   MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
 
 
@@ -66,6 +67,8 @@ stages:
         effectivePomSkip: false
         sonarQubeRunAnalysis: true
         isJacocoCoverageReportXML: true
-        sqMavenPluginVersionChoice: 'latest'        
+        sqMavenPluginVersionChoice: 'latest' 
+      env:
+        SONAR_TOKEN: $(SONAR_TOKEN)         
 
  
