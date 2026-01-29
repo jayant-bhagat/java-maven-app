@@ -68,7 +68,6 @@ stages:
         sonarQubeRunAnalysis: true
         isJacocoCoverageReportXML: true
         sqMavenPluginVersionChoice: 'latest' 
-      env:
-        SONAR_TOKEN: $(SONAR_TOKEN)         
+     
 
  
